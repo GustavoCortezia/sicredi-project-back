@@ -20,7 +20,7 @@ class MovimentacaoController extends Controller
             'movimentacoes.*.agencia' => 'required|string',
             'movimentacoes.*.conta' => 'required|string',
             'movimentacoes.*.nome' => 'required|string',
-            'movimentacoes.*.documento' => 'required|string',
+            'movimentacoes.*.documento' => 'string',
             'movimentacoes.*.codigo' => 'required|string',
             'movimentacoes.*.descricao' => 'required|string',
             'movimentacoes.*.debito' => 'required|numeric',
@@ -29,6 +29,7 @@ class MovimentacaoController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $this->registrarLog('Erro de Validação', 'Dados inválidos enviados para movimentações: ' . json_encode($validator->errors()));
             return response()->json(['errors' => $validator->errors()]);
         }
 
@@ -56,8 +57,10 @@ class MovimentacaoController extends Controller
             // Inserção em massa das movimentações
             Movimentacao::insert($dadosParaInserir);
 
+            $this->registrarLog('Movimentações Processadas', count($dadosParaInserir) . ' movimentações foram inseridas com sucesso.');
             return response()->json(['message' => 'Movimentações processadas com sucesso.'], 200);
         } catch (\Exception $e) {
+            $this->registrarLog('Erro ao Processar Movimentações', 'Erro: ' . $e->getMessage());
             return response()->json(['error' => 'Erro ao processar as movimentações. Detalhes: ' . $e->getMessage()]);
         }
     }
@@ -83,6 +86,7 @@ class MovimentacaoController extends Controller
      */
     public function exibirMetricas()
     {
+        try {
         // Exemplo de métricas - você pode expandir conforme as especificações detalhadas
         $metricas = [
             // Data com maior quantidade de movimentações
@@ -128,7 +132,12 @@ class MovimentacaoController extends Controller
                 ->orderBy('hora')
                 ->get(),
         ];
-
+        $this->registrarLog('Exibição de Métricas', 'Métricas de movimentações exibidas com sucesso.');
         return response()->json($metricas);
+
+    } catch (\Throwable $th) {
+        $this->registrarLog('Erro ao Exibir Métricas', 'Erro: ' . $th->getMessage());
+        return response()->json(['error' => 'Erro ao exibir as métricas. Detalhes: ' . $th->getMessage()]);
+    }
     }
 }
