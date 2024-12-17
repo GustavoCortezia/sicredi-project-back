@@ -1,0 +1,23 @@
+services:
+  laravel-docker:
+    container_name: sicredi-project
+    build: .
+    volumes:
+      - ./laravel-app:/var/www/html
+    ports:
+      - 9000:80
+    depends_on:
+      - mysql_db  # Garante que o serviço de banco de dados seja iniciado antes
+  mysql_db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel  # Certifique-se de que o nome do banco de dados aqui seja correto
+    ports:
+      - 3306:3306
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - 9001:80
+    environment:
+      - PMA_ARBITRARY=1
