@@ -13,7 +13,6 @@ class MovimentacaoController extends Controller
 
     public function processarMovimentacoes(Request $request)
     {
-        // Validação dos dados recebidos
         $validator = Validator::make($request->all(), [
             'movimentacoes' => 'required|array',
             'movimentacoes.*.coop' => 'required|string',
@@ -30,10 +29,9 @@ class MovimentacaoController extends Controller
 
         if ($validator->fails()) {
             $this->registrarLog('Erro de Validação', 'Dados inválidos enviados para movimentações: ' . json_encode($validator->errors()));
-            return response()->json(['errors' => $validator->errors()]);
+            return response()->json(['success' => 'false', 'message' => $validator->errors()]);
         }
 
-        // Preparando as movimentações para inserção em massa
         $movimentacoes = $request->input('movimentacoes');
 
         $dadosParaInserir = array_map(function ($movimentacao) {
@@ -48,30 +46,21 @@ class MovimentacaoController extends Controller
                 'debito' => $movimentacao['debito'],
                 'credito' => $movimentacao['credito'],
                 'data_hora' => $movimentacao['dataHora'],
-                'created_at' => now(),
-                'updated_at' => now(),
             ];
         }, $movimentacoes);
 
         try {
-            // Inserção em massa das movimentações
             Movimentacao::insert($dadosParaInserir);
 
             $this->registrarLog('Movimentações Processadas', count($dadosParaInserir) . ' movimentações foram inseridas com sucesso.');
-            return response()->json(['message' => 'Movimentações processadas com sucesso.'], 200);
+            return response()->json(['success' => 'true' , 'message' => 'Movimentações processadas com sucesso.'], 200);
         } catch (\Exception $e) {
             $this->registrarLog('Erro ao Processar Movimentações', 'Erro: ' . $e->getMessage());
-            return response()->json(['error' => 'Erro ao processar as movimentações. Detalhes: ' . $e->getMessage()]);
+            return response()->json(['success' => 'false', 'message' => $e->getMessage()]);
         }
     }
 
 
-
-
-
-    /**
-     * Método para registrar logs de ações no sistema.
-     */
     protected function registrarLog($acao, $detalhes)
     {
         Log::create([
@@ -79,15 +68,14 @@ class MovimentacaoController extends Controller
             'acao' => $acao,
             'detalhes' => $detalhes,
         ]);
+        return response()->json(['success' => 'true' , 'message' => 'Log registrado com sucesso.'], 200);
     }
 
-    /**
-     * Método para exibir as métricas de movimentações.
-     */
+
     public function exibirMetricas()
     {
         try {
-        // Exemplo de métricas - você pode expandir conforme as especificações detalhadas
+
         $metricas = [
             // Data com maior quantidade de movimentações
             'maior_data_movimentacao' => Movimentacao::selectRaw('DATE(data_hora) as data, COUNT(*) as total')
@@ -133,11 +121,11 @@ class MovimentacaoController extends Controller
                 ->get(),
         ];
         $this->registrarLog('Exibição de Métricas', 'Métricas de movimentações exibidas com sucesso.');
-        return response()->json($metricas);
+        return response()->json(['success' => 'true', 'metricas' => $metricas]);
 
-    } catch (\Throwable $th) {
-        $this->registrarLog('Erro ao Exibir Métricas', 'Erro: ' . $th->getMessage());
-        return response()->json(['error' => 'Erro ao exibir as métricas. Detalhes: ' . $th->getMessage()]);
-    }
+        } catch (\Throwable $th) {
+            $this->registrarLog('Erro ao Exibir Métricas', 'Erro: ' . $th->getMessage());
+            return response()->json(['success' => 'false', 'message' => $th->getMessage()]);
+        }
     }
 }

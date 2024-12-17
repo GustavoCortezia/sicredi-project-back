@@ -1,2 +1,5 @@
 - ## Get Started
     - [Overview](/{{route}}/{{version}}/overview)
+    - [Movimentações](/{{route}}/{{version}}/movimentacoes)
+    - [Métricas](/{{route}}/{{version}}/metricas)
+    - [Logs](/{{route}}/{{version}}/logs)

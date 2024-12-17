@@ -20,7 +20,6 @@ class CreateMovimentacoesTable extends Migration
             $table->decimal('debito', 10, 2)->nullable();
             $table->decimal('credito', 10, 2)->nullable();
             $table->dateTime('data_hora')->nullable();
-            $table->timestamps();
         });
     }
 
