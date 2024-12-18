@@ -13,55 +13,57 @@ class MovimentacaoController extends Controller
 
     public function processarMovimentacoes(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'movimentacoes' => 'required|array',
-            'movimentacoes.*.coop' => 'required|string',
-            'movimentacoes.*.agencia' => 'required|string',
-            'movimentacoes.*.conta' => 'required|string',
-            'movimentacoes.*.nome' => 'required|string',
-            'movimentacoes.*.documento' => 'string',
-            'movimentacoes.*.codigo' => 'required|string',
-            'movimentacoes.*.descricao' => 'required|string',
-            'movimentacoes.*.debito' => 'required|numeric',
-            'movimentacoes.*.credito' => 'required|numeric',
-            'movimentacoes.*.dataHora' => 'required|date_format:Y/m/d H:i:s',
-        ]);
-
-        if ($validator->fails()) {
-            $this->registrarLog('Erro de Validação', 'Dados inválidos enviados para movimentações: ' . json_encode($validator->errors()));
-            return response()->json(['success' => 'false', 'message' => $validator->errors()]);
-        }
-
-        $movimentacoes = $request->input('movimentacoes');
-
-        $dadosParaInserir = array_map(function ($movimentacao) {
-            return [
-                'coop' => $movimentacao['coop'],
-                'agencia' => $movimentacao['agencia'],
-                'conta' => $movimentacao['conta'],
-                'nome' => $movimentacao['nome'],
-                'documento' => $movimentacao['documento'],
-                'codigo' => $movimentacao['codigo'],
-                'descricao' => $movimentacao['descricao'],
-                'debito' => $movimentacao['debito'],
-                'credito' => $movimentacao['credito'],
-                'data_hora' => $movimentacao['dataHora'],
-            ];
-        }, $movimentacoes);
-
         try {
+            $request->validate(
+                [
+                    'movimentacoes' => 'required|array',
+                    'movimentacoes.*.coop' => 'required|string',
+                    'movimentacoes.*.agencia' => 'required|string',
+                    'movimentacoes.*.conta' => 'required|string',
+                    'movimentacoes.*.nome' => 'required|string',
+                    'movimentacoes.*.documento' => 'required|string',
+                    'movimentacoes.*.codigo' => 'required|string',
+                    'movimentacoes.*.descricao' => 'required|string',
+                    'movimentacoes.*.debito' => 'required|numeric',
+                    'movimentacoes.*.credito' => 'required|numeric',
+                    'movimentacoes.*.dataHora' => 'required|date_format:Y/m/d H:i:s',
+                ],
+                [
+                    'required' => ':attribute é obrigatório!',
+                    'string' => ':attribute deve ser uma string!',
+                    'numeric' => ':attribute deve ser numérico!',
+                    'date_format' => ':attribute deve estar no formato Y/m/d H:i:s!',
+                ]
+            );
+
+            $dadosParaInserir = array_map(function ($movimentacao) {
+                return [
+                    'coop' => $movimentacao['coop'],
+                    'agencia' => $movimentacao['agencia'],
+                    'conta' => $movimentacao['conta'],
+                    'nome' => $movimentacao['nome'],
+                    'documento' => $movimentacao['documento'],
+                    'codigo' => $movimentacao['codigo'],
+                    'descricao' => $movimentacao['descricao'],
+                    'debito' => $movimentacao['debito'],
+                    'credito' => $movimentacao['credito'],
+                    'data_hora' => $movimentacao['dataHora'],
+                ];
+            }, $request->input('movimentacoes'));
+
             Movimentacao::insert($dadosParaInserir);
 
             $this->registrarLog('Movimentações Processadas', count($dadosParaInserir) . ' movimentações foram inseridas com sucesso.');
-            return response()->json(['success' => 'true' , 'message' => 'Movimentações processadas com sucesso.'], 200);
-        } catch (\Exception $e) {
-            $this->registrarLog('Erro ao Processar Movimentações', 'Erro: ' . $e->getMessage());
-            return response()->json(['success' => 'false', 'message' => $e->getMessage()]);
+            return response()->json(['success' => 'true', 'message' => 'Movimentações processadas com sucesso!', 'data' => $dadosParaInserir], 201);
+
+        } catch (\Throwable $th) {
+            $this->registrarLog('Erro ao Processar Movimentações', 'Erro: ' . $th->getMessage());
+            return response()->json(['success' => 'false', 'message' => $th->getMessage()], 500);
         }
     }
 
 
-    protected function registrarLog($acao, $detalhes)
+    public function registrarLog($acao, $detalhes)
     {
         Log::create([
             'datahora' => now(),
@@ -106,7 +108,7 @@ class MovimentacaoController extends Controller
                 ->whereIn('codigo', ['RX1', 'PX1'])
                 ->groupBy('dia')
                 ->orderByDesc('total')
-                ->get(),
+                ->first(),
 
             // Quantidade e valor movimentado por coop/agência
             'movimentacoes_por_coop_agencia' => Movimentacao::selectRaw('coop, agencia, COUNT(*) as total, SUM(debito + credito) as total_valor')
@@ -121,11 +123,11 @@ class MovimentacaoController extends Controller
                 ->get(),
         ];
         $this->registrarLog('Exibição de Métricas', 'Métricas de movimentações exibidas com sucesso.');
-        return response()->json(['success' => 'true', 'metricas' => $metricas]);
+        return response()->json(['success' => 'true', 'message' => 'Métricas exibidas com sucesso!', 'metricas' => $metricas], 200);
 
         } catch (\Throwable $th) {
             $this->registrarLog('Erro ao Exibir Métricas', 'Erro: ' . $th->getMessage());
-            return response()->json(['success' => 'false', 'message' => $th->getMessage()]);
+            return response()->json(['success' => 'false', 'message' => $th->getMessage()],500);
         }
     }
 }

@@ -10,16 +10,16 @@ class CreateMovimentacoesTable extends Migration
     {
         Schema::create('movimentacoes', function (Blueprint $table) {
             $table->id();
-            $table->string('coop', 10)->nullable();
-            $table->string('agencia', 10)->nullable();
-            $table->string('conta', 20)->nullable();
-            $table->string('nome', 100)->nullable();
-            $table->string('documento', 20)->nullable();
-            $table->string('codigo', 20)->nullable();
-            $table->string('descricao', 255)->nullable();
+            $table->string('coop', 10);
+            $table->string('agencia', 10);
+            $table->string('conta', 20);
+            $table->string('nome', 100);
+            $table->string('documento', 20);
+            $table->string('codigo', 20);
+            $table->string('descricao', 255);
             $table->decimal('debito', 10, 2)->nullable();
             $table->decimal('credito', 10, 2)->nullable();
-            $table->dateTime('data_hora')->nullable();
+            $table->dateTime('data_hora');
         });
     }
 

@@ -5,29 +5,27 @@ Valida os campos e os insere no banco de dados:
 
 
 
-### Endpoint (Login)
-
-o processo de login ocorre consultando o serviço de autenticação, caso os dados existam e sejam válidos, é aplicado as facades de autenticação.
+### Endpoint
 
 | Method |   URL    |
 | :----: | :------: | 
-|  POST  | `/metricas` |       
+|  POST  | `/processar` |       
 
 #### Body rules
 
 ```json
 {
-    "movimentacoes": "required|array",
-    "coop": "required|string",
-    "agencia": "required|string",
-    "conta": "required|string",
-    "nome": "required|string",
-    "documento": "string",
-    "codigo": "required|string",
-    "descricao": "required|string",
-    "debito": "required|numeric",
-    "credito": "required|numeric",
-    "dataHora": "required|date_format:Y/m/d H:i:s",
+    "movimentacoes.*.movimentacoes": "required|array",
+    "movimentacoes.*.coop": "required|string",
+    "movimentacoes.*.agencia": "required|string",
+    "movimentacoes.*.conta": "required|string",
+    "movimentacoes.*.nome": "required|string",
+    "movimentacoes.*.documento": "required|string",
+    "movimentacoes.*.codigo": "required|string",
+    "movimentacoes.*.descricao": "required|string",
+    "movimentacoes.*.debito": "required|numeric",
+    "movimentacoes.*.credito": "required|numeric",
+    "movimentacoes.*.dataHora": "required|date_format:Y/m/d H:i:s",
 }
 ```
 
@@ -40,27 +38,25 @@ Código `200`
 ```json
 {
     "success": "boolean",
-    "msg": "string",
-    "data": {
-        "user": {
-            "id": "number",
-            "name": "string",
-            "surname": "string",
-            "email": "string",
-            "username": "string",
-            "avatar_url": "string|null",
-            "email_verified_at": "string|null",
-            "created_at": "string|date",
-            "updated_at": "string|date"
-        },
-        "token": "string"
-    }
+    "message": "string",
+    "data": [{
+        "agencia": "string",
+        "codigo": "string",
+        "conta": "string",
+        "coop": "string",
+        "credito": "number",
+        "data_hora": "string|date",
+        "debito": "number",
+        "descricao": "string",
+        "documento": "string|null",
+        "nome": "string",
+    }]
 }
 ```
 
-> {danger.fa-times-circle-o} E-mail ou senha invalido!
+> {danger.fa-times-circle-o} Erro ao Processar Movimentações
 
-Código `422`
+Código `500`
 
 ```json
 {
@@ -69,46 +65,4 @@ Código `422`
 }
 ```
 
-<a name="request-logout"></a>
 
-## Fazer logout
-
-A autenticação é realizada via tokens. Para todas as rotas protegidas devem ser enviadas em seus cabeçalhos o parâmetro:
-
-```json
-{
-    "Authorization": "Bearer {...token}"
-}
-```
-
-### Endpoint (Login)
-
-o processo de logout ocorre consultando o serviço de autenticação, caso os dados existam e sejam válidos, é aplicado as facades de autenticação.
-
-| Method |    URL    | Headers |
-| :----: | :-------: | ------- |
-| DELETE | `/logout` | Auth    |
-
-### Responses
-
-> {success.fa-check-circle-o} Logout bem-sucedido
-
-Código `200`
-
-```json
-{
-    "success": "boolean",
-    "msg": "Logout feito com sucesso"
-}
-```
-
-> {danger.fa-times-circle-o} Usuário não estava autenticado
-
-Código `422`
-
-```json
-{
-    "success": "boolean",
-    "message": "string"
-}
-```
