@@ -1,6 +1,6 @@
 FROM php:8.2.11-fpm
 
-# Install composer
+
 RUN echo "\e[1;33mInstall COMPOSER\e[0m"
 RUN cd /tmp \
     && curl -sS https://getcomposer.org/installer | php \
@@ -10,10 +10,9 @@ RUN docker-php-ext-install pdo pdo_mysql
 
 RUN apt-get update
 
-# Install useful tools
+
 RUN apt-get -y install apt-utils nano wget dialog vim
 
-# Install important libraries
 RUN echo "\e[1;33mInstall important libraries\e[0m"
 RUN apt-get -y install --fix-missing \
     apt-utils \
@@ -32,24 +31,7 @@ RUN apt-get -y install --fix-missing \
     libonig-dev \
     libxml2-dev
 
-# RUN echo "\e[1;33mInstall important docker dependencies\e[0m"
-# RUN docker-php-ext-install \
-#     exif \
-#     pcntl \
-#     bcmath \
-#     ctype \
-#     curl \
-#     iconv \
-#     xml \
-#     soap \
-#     pcntl \
-#     mbstring \
-#     tokenizer \
-#     bz2 \
-#     zip \
-#     intl
 
-# Install Postgre PDO
 RUN apt-get install -y libpq-dev \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo pdo_pgsql pgsql
